@@ -1,36 +1,90 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# IVR Authentication Designer
+
+An intuitive web application for designing and managing Interactive Voice Response (IVR) authentication flows.
+
+## Overview
+
+The IVR Authentication Designer allows business owners to:
+
+1. Create authentication flows with a visual designer
+2. Define and manage authentication tokens (SSN, PIN, Account Numbers, etc.)
+3. Configure validation rules and branching paths
+4. Design the entire customer authentication journey from start to finish
+
+## Key Features
+
+- **User Authentication**: Secure login and registration system
+- **Project Management**: Organize authentication flows by projects
+- **Token Management**: Create and configure different types of authentication tokens
+- **Visual Flow Designer**: Drag-and-drop interface to design authentication flows
+- **Multi-Path Support**: Create complex authentication flows with branching paths
+- **Validation Configuration**: Set up validation rules for authentication tokens
+
+## Technologies Used
+
+- **Frontend**: Next.js, React, Tailwind CSS, ReactFlow
+- **Backend**: Next.js API Routes
+- **Database**: MongoDB (via Prisma ORM)
+- **Authentication**: NextAuth.js
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Node.js 16.x or higher
+- MongoDB database
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Clone the repository
+   ```
+   git clone https://github.com/yourusername/ivr-designer.git
+   cd ivr-designer
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2. Install dependencies
+   ```
+   npm install
+   ```
 
-## Learn More
+3. Set up environment variables
+   Create a `.env` file in the root directory with the following variables:
+   ```
+   DATABASE_URL="your-mongodb-connection-string"
+   NEXTAUTH_SECRET="your-nextauth-secret"
+   NEXTAUTH_URL="http://localhost:3000"
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+4. Run the development server
+   ```
+   npm run dev
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Project Structure
 
-## Deploy on Vercel
+- `/app` - Next.js application 
+- `/app/api` - API routes for backend functionality
+- `/components` - Reusable React components
+- `/components/flow` - Custom ReactFlow node components
+- `/lib` - Utility functions and shared code
+- `/prisma` - Prisma schema and database configuration
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Database Schema
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The database is structured around the following models:
+
+- **User**: Authentication and user information
+- **Project**: Container for grouping related authentication flows
+- **Token**: Authentication tokens that can be validated (SSN, PIN, etc.)
+- **Flow**: Individual authentication flows
+- **Node**: Steps within a flow (prompts, validation, branches, etc.)
+
+## Future Enhancements
+
+- Flow simulation/preview mode
+- Integration with external validation services
+- Export flows to various IVR platforms
+- Team collaboration features
+- Analytics dashboard
