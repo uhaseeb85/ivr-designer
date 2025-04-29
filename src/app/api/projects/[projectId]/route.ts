@@ -178,8 +178,10 @@ export async function PUT(request: Request, { params }: RouteParams) {
 // Delete a project
 export async function DELETE(request: Request, { params }: RouteParams) {
   try {
+    console.log("Deleting project: Start");
     const session = await getServerSession();
     const projectId = await params.projectId;
+    console.log("Project ID to delete:", projectId);
 
     if (!session || !session.user) {
       return NextResponse.json(
@@ -224,41 +226,74 @@ export async function DELETE(request: Request, { params }: RouteParams) {
       );
     }
 
-    // Delete all tokens associated with the project
-    await db.token.deleteMany({
+    // Get all tokens associated with the project
+    console.log("Finding tokens for project");
+    const tokens = await db.token.findMany({
       where: { projectId },
     });
+    console.log(`Found ${tokens.length} tokens to delete`);
 
-    // Delete all nodes in all flows associated with the project
-    const flows = await db.flow.findMany({
-      where: { projectId },
-      select: { id: true },
-    });
-
-    for (const flow of flows) {
-      await db.node.deleteMany({
-        where: { flowId: flow.id },
+    // Delete each token individually
+    for (const token of tokens) {
+      console.log(`Deleting token: ${token.id}`);
+      await db.token.delete({
+        where: { id: token.id },
       });
     }
 
-    // Delete all flows associated with the project
-    await db.flow.deleteMany({
+    // Get all flows associated with the project
+    console.log("Finding flows for project");
+    const flows = await db.flow.findMany({
       where: { projectId },
     });
+    console.log(`Found ${flows.length} flows to delete`);
+
+    // For each flow, delete its nodes and then the flow
+    for (const flow of flows) {
+      // Get all nodes for this flow
+      console.log(`Finding nodes for flow: ${flow.id}`);
+      const nodes = await db.node.findMany({
+        where: { flowId: flow.id },
+      });
+      console.log(`Found ${nodes.length} nodes to delete for flow: ${flow.id}`);
+
+      // Delete each node individually
+      for (const node of nodes) {
+        console.log(`Deleting node: ${node.id}`);
+        await db.node.delete({
+          where: { id: node.id },
+        });
+      }
+
+      // Delete the flow
+      console.log(`Deleting flow: ${flow.id}`);
+      await db.flow.delete({
+        where: { id: flow.id },
+      });
+    }
 
     // Delete the project
+    console.log(`Deleting project: ${projectId}`);
     await db.project.delete({
       where: {
         id: projectId,
       },
     });
 
+    console.log("Project deletion completed successfully");
     return NextResponse.json(
       { message: "Project deleted successfully" },
       { status: 200 }
     );
   } catch (error) {
     console.error("Error deleting project:", error);
+    
+    // More detailed error logging
+    if (error instanceof Error) {
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+    }
+    
     return NextResponse.json(
       { error: "Failed to delete project" },
       { status: 500 }

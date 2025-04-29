@@ -48,16 +48,39 @@ export default function TokensPage() {
     if (status === "authenticated") {
       const fetchData = async () => {
         try {
+          console.log("Fetching tokens data...");
+          
           // Fetch tokens
           const tokensResponse = await fetch("/api/tokens");
+          console.log("Tokens response status:", tokensResponse.status);
+          
+          if (!tokensResponse.ok) {
+            const errorData = await tokensResponse.json();
+            console.error("Tokens API error:", errorData);
+            throw new Error(errorData.error || "Failed to fetch tokens");
+          }
+          
           const tokensData = await tokensResponse.json();
+          console.log("Tokens data received:", tokensData);
           
           // Fetch projects for the token creation form
           const projectsResponse = await fetch("/api/projects");
+          console.log("Projects response status:", projectsResponse.status);
+          
+          if (!projectsResponse.ok) {
+            const errorData = await projectsResponse.json();
+            console.error("Projects API error:", errorData);
+            throw new Error(errorData.error || "Failed to fetch projects");
+          }
+          
           const projectsData = await projectsResponse.json();
+          console.log("Projects data received:", projectsData);
           
           setTokens(tokensData.tokens || []);
+          console.log("Tokens set:", tokensData.tokens?.length || 0);
+          
           setProjects(projectsData.projects || []);
+          console.log("Projects set:", projectsData.projects?.length || 0);
           
           // Set default project if available
           if (projectsData.projects && projectsData.projects.length > 0) {
@@ -65,6 +88,11 @@ export default function TokensPage() {
           }
         } catch (error) {
           console.error("Error fetching data:", error);
+          if (error instanceof Error) {
+            setError(error.message);
+          } else {
+            setError("An error occurred while fetching data");
+          }
         } finally {
           setLoading(false);
         }

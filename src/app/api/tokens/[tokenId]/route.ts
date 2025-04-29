@@ -8,6 +8,7 @@ export async function GET(
   { params }: { params: { tokenId: string } }
 ) {
   try {
+    console.log("Fetching token:", params.tokenId);
     const session = await getServerSession();
     const tokenId = params.tokenId;
 
@@ -19,11 +20,13 @@ export async function GET(
     }
 
     const userEmail = session.user.email as string;
+    console.log("User email:", userEmail);
 
     // Get user ID
     const user = await db.user.findUnique({
       where: { email: userEmail },
     });
+    console.log("User found:", user ? "Yes" : "No");
 
     if (!user) {
       return NextResponse.json(
@@ -32,18 +35,12 @@ export async function GET(
       );
     }
 
-    // Get token with project info
+    // Get token
+    console.log("Finding token:", tokenId);
     const token = await db.token.findUnique({
       where: { id: tokenId },
-      include: {
-        project: {
-          select: {
-            userId: true,
-            name: true,
-          },
-        },
-      },
     });
+    console.log("Token found:", token ? "Yes" : "No");
 
     if (!token) {
       return NextResponse.json(
@@ -52,17 +49,49 @@ export async function GET(
       );
     }
 
+    // Get project details
+    console.log("Finding project for token:", token.projectId);
+    const project = await db.project.findUnique({
+      where: { id: token.projectId },
+    });
+    console.log("Project found:", project ? "Yes" : "No");
+
+    if (!project) {
+      return NextResponse.json(
+        { error: "Token's project not found" },
+        { status: 404 }
+      );
+    }
+
     // Check if user has access to this token's project
-    if (token.project.userId !== user.id) {
+    if (project.userId !== user.id) {
+      console.log("Unauthorized: Token's project does not belong to user");
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 403 }
       );
     }
 
-    return NextResponse.json({ token });
+    // Combine token with project info
+    const tokenWithProject = {
+      ...token,
+      project: {
+        id: project.id,
+        name: project.name,
+        userId: project.userId
+      }
+    };
+
+    return NextResponse.json({ token: tokenWithProject });
   } catch (error) {
     console.error("Error fetching token:", error);
+    
+    // More detailed error logging
+    if (error instanceof Error) {
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+    }
+    
     return NextResponse.json(
       { error: "Failed to fetch token" },
       { status: 500 }
@@ -76,6 +105,7 @@ export async function PUT(
   { params }: { params: { tokenId: string } }
 ) {
   try {
+    console.log("Updating token:", params.tokenId);
     const session = await getServerSession();
     const tokenId = params.tokenId;
     const { name, type, description, format } = await request.json();
@@ -101,16 +131,9 @@ export async function PUT(
       );
     }
 
-    // Get token with project info
+    // Get token
     const token = await db.token.findUnique({
       where: { id: tokenId },
-      include: {
-        project: {
-          select: {
-            userId: true,
-          },
-        },
-      },
     });
 
     if (!token) {
@@ -120,8 +143,20 @@ export async function PUT(
       );
     }
 
+    // Get project to check ownership
+    const project = await db.project.findUnique({
+      where: { id: token.projectId },
+    });
+
+    if (!project) {
+      return NextResponse.json(
+        { error: "Token's project not found" },
+        { status: 404 }
+      );
+    }
+
     // Check if user has access to this token's project
-    if (token.project.userId !== user.id) {
+    if (project.userId !== user.id) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 403 }
@@ -142,6 +177,13 @@ export async function PUT(
     return NextResponse.json({ token: updatedToken });
   } catch (error) {
     console.error("Error updating token:", error);
+    
+    // More detailed error logging
+    if (error instanceof Error) {
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+    }
+    
     return NextResponse.json(
       { error: "Failed to update token" },
       { status: 500 }
@@ -155,6 +197,7 @@ export async function DELETE(
   { params }: { params: { tokenId: string } }
 ) {
   try {
+    console.log("Deleting token:", params.tokenId);
     const session = await getServerSession();
     const tokenId = params.tokenId;
 
@@ -179,16 +222,9 @@ export async function DELETE(
       );
     }
 
-    // Get token with project info
+    // Get token
     const token = await db.token.findUnique({
       where: { id: tokenId },
-      include: {
-        project: {
-          select: {
-            userId: true,
-          },
-        },
-      },
     });
 
     if (!token) {
@@ -198,8 +234,20 @@ export async function DELETE(
       );
     }
 
+    // Get project to check ownership
+    const project = await db.project.findUnique({
+      where: { id: token.projectId },
+    });
+
+    if (!project) {
+      return NextResponse.json(
+        { error: "Token's project not found" },
+        { status: 404 }
+      );
+    }
+
     // Check if user has access to this token's project
-    if (token.project.userId !== user.id) {
+    if (project.userId !== user.id) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 403 }
@@ -207,9 +255,11 @@ export async function DELETE(
     }
 
     // Delete token
+    console.log("Deleting token from database");
     await db.token.delete({
       where: { id: tokenId },
     });
+    console.log("Token successfully deleted");
 
     return NextResponse.json(
       { message: "Token deleted successfully" },
@@ -217,6 +267,13 @@ export async function DELETE(
     );
   } catch (error) {
     console.error("Error deleting token:", error);
+    
+    // More detailed error logging
+    if (error instanceof Error) {
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+    }
+    
     return NextResponse.json(
       { error: "Failed to delete token" },
       { status: 500 }
