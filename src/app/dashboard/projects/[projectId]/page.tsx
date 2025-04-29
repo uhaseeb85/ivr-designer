@@ -5,10 +5,13 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-interface ProjectProps {
-  params: {
-    projectId: string;
-  };
+interface Project {
+  id: string;
+  name: string;
+  description?: string;
+  createdAt: string;
+  flows: Flow[];
+  tokens: Token[];
 }
 
 interface Flow {
@@ -25,17 +28,11 @@ interface Token {
   description?: string;
 }
 
-interface Project {
-  id: string;
-  name: string;
-  description?: string;
-  createdAt: string;
-  flows: Flow[];
-  tokens: Token[];
+interface ProjectProps {
+  projectId: string;
 }
 
-export default function ProjectPage({ params }: ProjectProps) {
-  const { projectId } = params;
+function ProjectPageClient({ projectId }: ProjectProps) {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [project, setProject] = useState<Project | null>(null);
@@ -406,4 +403,8 @@ export default function ProjectPage({ params }: ProjectProps) {
       </main>
     </div>
   );
+}
+
+export default function Page({ params }: { params: { projectId: string } }) {
+  return <ProjectPageClient projectId={params.projectId} />;
 } 
