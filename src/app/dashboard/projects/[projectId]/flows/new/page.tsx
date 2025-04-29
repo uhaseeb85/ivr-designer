@@ -23,6 +23,7 @@ export default function NewFlowPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [useSimpleDesigner, setUseSimpleDesigner] = useState(false);
 
   useEffect(() => {
     // Check authentication
@@ -76,8 +77,12 @@ export default function NewFlowPage() {
         throw new Error(data.error || "Failed to create flow");
       }
 
-      // Redirect to the flow designer
-      router.push(`/dashboard/projects/${projectId}/flows/${data.flow.id}/designer`);
+      // Redirect to the chosen flow designer
+      if (useSimpleDesigner) {
+        router.push(`/dashboard/projects/${projectId}/flows/${data.flow.id}/simple-designer`);
+      } else {
+        router.push(`/dashboard/projects/${projectId}/flows/${data.flow.id}/designer`);
+      }
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message);
@@ -210,6 +215,22 @@ export default function NewFlowPage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   placeholder="Enter flow description"
                 />
+              </div>
+
+              <div className="mb-6">
+                <div className="flex items-center">
+                  <input
+                    id="useSimpleDesigner"
+                    name="useSimpleDesigner"
+                    type="checkbox"
+                    checked={useSimpleDesigner}
+                    onChange={(e) => setUseSimpleDesigner(e.target.checked)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="useSimpleDesigner" className="ml-2 block text-sm text-gray-700">
+                    Use simple flow designer (recommended for easier editing)
+                  </label>
+                </div>
               </div>
 
               <div className="flex justify-end">

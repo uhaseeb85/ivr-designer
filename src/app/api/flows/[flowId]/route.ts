@@ -135,31 +135,31 @@ export async function PUT(
     if (name !== undefined) updatedData.name = name;
     if (description !== undefined) updatedData.description = description;
     
-    // If nodes are provided, delete existing nodes and create new ones
-    if (nodes && Array.isArray(nodes)) {
-      // First delete existing nodes
+    // Update nodes if provided
+    if (nodes) {
+      // Delete existing nodes
       await db.node.deleteMany({
         where: { flowId },
       });
       
-      // Then create new nodes
-      await Promise.all(
-        nodes.map(async (node: any) => {
-          return db.node.create({
-            data: {
-              id: node.id,
-              type: node.type,
-              title: node.data?.title || node.title || '',
-              prompt: node.data?.prompt || node.prompt || '',
-              tokens: node.data?.tokens || node.tokens || [],
-              branches: node.data?.branches || node.branches || [],
-              position: node.position || { x: 0, y: 0 },
-              nextNodeIds: node.nextNodeIds || [],
-              flowId,
-            },
-          });
-        })
-      );
+      // Create new nodes
+      const newNodes = nodes.map((node: any) => ({
+        id: node.id,
+        type: node.type,
+        title: node.title,
+        prompt: node.prompt,
+        position: node.position || { x: 0, y: 0 }, // Support both position objects and numeric positions
+        flowId,
+        tokenId: node.tokenId,
+        validationRules: node.validationRules,
+        nextNodeIds: node.nextNodeIds || [],
+      }));
+      
+      for (const node of newNodes) {
+        await db.node.create({
+          data: node,
+        });
+      }
     }
 
     const updatedFlow = await db.flow.update({

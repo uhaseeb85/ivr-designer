@@ -306,6 +306,12 @@ export default function ProjectPage({ params }: ProjectProps) {
                                 >
                                   Edit
                                 </Link>
+                                <Link
+                                  href={`/dashboard/projects/${projectId}/flows/${flow.id}/simple-designer`}
+                                  className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800"
+                                >
+                                  Simple Edit
+                                </Link>
                                 <button
                                   onClick={() => deleteFlow(flow.id)}
                                   className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800"

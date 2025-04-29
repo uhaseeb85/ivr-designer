@@ -4,20 +4,16 @@
     "name": "Flow 1",
     "description": "asdasf",
     "projectId": "vot05dfk99nxsd2mvd6c5",
-    "nodes": {
-      "create": [
-        {
-          "type": "start",
-          "title": "Start",
-          "prompt": "Start of authentication flow",
-          "position": {
-            "x": 250,
-            "y": 100
-          },
-          "nextNodeIds": []
-        }
-      ]
-    },
+    "nodes": [
+      {
+        "id": "start-node-1",
+        "type": "start",
+        "title": "Start",
+        "prompt": "Start of authentication flow",
+        "position": 0,
+        "nextNodeIds": []
+      }
+    ],
     "createdAt": "2025-04-28T23:51:13.634Z",
     "updatedAt": "2025-04-28T23:51:13.634Z"
   },
@@ -26,20 +22,16 @@
     "name": "LLM",
     "description": "bnhffhfnfb",
     "projectId": "b9awtcdaihcrjgd4ogiwh",
-    "nodes": {
-      "create": [
-        {
-          "type": "start",
-          "title": "Start",
-          "prompt": "Start of authentication flow",
-          "position": {
-            "x": 250,
-            "y": 100
-          },
-          "nextNodeIds": []
-        }
-      ]
-    },
+    "nodes": [
+      {
+        "id": "start-node-2",
+        "type": "start",
+        "title": "Start",
+        "prompt": "Start of authentication flow",
+        "position": 0,
+        "nextNodeIds": []
+      }
+    ],
     "createdAt": "2025-04-29T03:00:27.552Z",
     "updatedAt": "2025-04-29T03:00:27.552Z"
   }
