@@ -10,6 +10,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     // Check authentication
@@ -21,13 +22,26 @@ export default function DashboardPage() {
     if (status === "authenticated") {
       const fetchProjects = async () => {
         try {
+          console.log("Fetching projects from client...");
           const response = await fetch("/api/projects");
+          console.log("Response status:", response.status);
+          
           if (response.ok) {
             const data = await response.json();
-            setProjects(data.projects);
+            console.log("Projects data received:", data);
+            setProjects(data.projects || []);
+          } else {
+            const errorData = await response.json();
+            console.error("API error response:", errorData);
+            setError(errorData.error || "Failed to fetch projects");
           }
         } catch (error) {
           console.error("Error fetching projects:", error);
+          if (error instanceof Error) {
+            setError(error.message);
+          } else {
+            setError("An unknown error occurred");
+          }
         } finally {
           setLoading(false);
         }
@@ -41,6 +55,14 @@ export default function DashboardPage() {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-lg">Loading...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-lg text-red-500">Error: {error}</div>
       </div>
     );
   }

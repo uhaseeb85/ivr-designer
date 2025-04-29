@@ -11,10 +11,13 @@ interface RouteParams {
 // Get a specific project
 export async function GET(request: Request, { params }: RouteParams) {
   try {
+    console.log("Fetching project:", await params.projectId);
     const session = await getServerSession();
     const projectId = await params.projectId;
+    console.log("Session obtained:", session ? "Yes" : "No");
 
     if (!session || !session.user) {
+      console.log("Unauthorized: No session or user");
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
@@ -22,11 +25,13 @@ export async function GET(request: Request, { params }: RouteParams) {
     }
 
     const userEmail = session.user.email as string;
+    console.log("User email:", userEmail);
 
     // Get user
     const user = await db.user.findUnique({
       where: { email: userEmail },
     });
+    console.log("User found:", user ? "Yes" : "No");
 
     if (!user) {
       return NextResponse.json(
@@ -35,16 +40,14 @@ export async function GET(request: Request, { params }: RouteParams) {
       );
     }
 
-    // Get the project with flows and tokens
+    // Get the project
+    console.log("Finding project with ID:", projectId);
     const project = await db.project.findUnique({
       where: {
         id: projectId,
       },
-      include: {
-        flows: true,
-        tokens: true,
-      },
     });
+    console.log("Project found:", project ? "Yes" : "No");
 
     if (!project) {
       return NextResponse.json(
@@ -53,24 +56,47 @@ export async function GET(request: Request, { params }: RouteParams) {
       );
     }
 
-    // Ensure flows and tokens are always arrays
-    const responseProject = {
-      ...project,
-      flows: project.flows || [],
-      tokens: project.tokens || []
-    };
-
     // Check if project belongs to user
     if (project.userId !== user.id) {
+      console.log("Project does not belong to user");
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 403 }
       );
     }
 
+    // Get flows for this project
+    console.log("Finding flows for project");
+    const flows = await db.flow.findMany({
+      where: { projectId: projectId }
+    }) || [];
+    console.log("Flows found:", flows.length);
+
+    // Get tokens for this project
+    console.log("Finding tokens for project");
+    const tokens = await db.token.findMany({
+      where: { projectId: projectId }
+    }) || [];
+    console.log("Tokens found:", tokens.length);
+
+    // Create response object with project, flows and tokens
+    const responseProject = {
+      ...project,
+      flows: flows,
+      tokens: tokens
+    };
+
+    console.log("Returning project with flows and tokens");
     return NextResponse.json({ project: responseProject });
   } catch (error) {
     console.error("Error fetching project:", error);
+    
+    // More detailed error logging
+    if (error instanceof Error) {
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+    }
+    
     return NextResponse.json(
       { error: "Failed to fetch project" },
       { status: 500 }
